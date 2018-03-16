@@ -21,6 +21,10 @@
     import javax.xml.xpath.XPathExpression;
     import javax.xml.xpath.XPathExpressionException;
     import javax.xml.xpath.XPathFactory;
+
+    import org.w3c.dom.Document;
+    import org.w3c.dom.NodeList;
+    import org.xml.sax.SAXException;
     
     public class MapDialog extends JFrame {
      
@@ -44,8 +48,8 @@
     // Resoluutio & formaatti 
         private final int Leveys = 960;
         private final int Korkeus = 480;
-        private final String IMAGE_FORMAT = "image/png";
-        private final boolean TRANSPARENCY = true;
+        private final String KuvaFormaati = "image/png";
+        private final boolean Taustaton = true;
       
       
     // Kuvan sijainti
@@ -53,9 +57,10 @@
         private int y = 0;
         private int z = 80;
         private int o = 20;
+        private List<LayerCheckBox> checkboxes = new ArrayList<>();
         
       public MapDialog() throws Exception {
-        
+
         // Valmistele ikkuna ja lis�� siihen komponentit
      
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -108,8 +113,10 @@
         private void CheckBoxes() {
           String url = ServerinOsoite + "&REQUEST=GetCapabilities";
           try {
-              DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new URL(url).openStream());
-              for (String l : getLayers(doc)) {
+            DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = f.newDocumentBuilder();
+            Document d = db.parse(new URL(url).openStream());
+              for (String l : getLayers(d)) {
                   LayerCheckBox b = new LayerCheckBox(l, l, false);
                   checkboxes.add(b);
                   leftPanel.add(b);
@@ -201,7 +208,7 @@
      
       // Tarkastetaan mitk� karttakerrokset on valittu,
       // tehd��n uudesta karttakuvasta pyynt� palvelimelle ja p�ivitet��n kuva
-      public void updateImage() throws Exception {
+      /*public void updateImage() throws Exception {
         String s = "";
      
         // Tutkitaan, mitk� valintalaatikot on valittu, ja
@@ -215,7 +222,7 @@
         if (s.endsWith(",")) s = s.substring(0, s.length() - 1);
         
         new MapThread(s).run();
-      }
+      }*/
           
 
     // S�ie joka hakee uuden karttakuvan palvelimelta
@@ -225,8 +232,6 @@
         public MapThread(String s) {
             this.Tasot = s;
         }
-
-        // mene.jpg
         public void run() {
             int x1 = x - 2 * z,
                 y1 = y - z,
@@ -241,9 +246,8 @@
                     + "&HEIGHT=" + Korkeus
                     + "&LAYERS=" + Tasot
                     + "&STYLES="
-                    + "&FORMAT=" + IMAGE_FORMAT
-                    + "&TRANSPARENT=" + TRANSPARENCY;
-
+                    + "&FORMAT=" + KuvaFormaati
+                    + "&TRANSPARENT=" + Taustaton;
             try {
                 imageLabel.setIcon(new ImageIcon(new URL(url)));
             } catch (MalformedURLException m) {
