@@ -1,14 +1,28 @@
-    // Kartankatseluohjelman graafinen kï¿½yttï¿½liittymï¿½
+    // Kartankatseluohjelman graafinen käyttöliittymä
      
     import javax.swing.*;
-    import javax.swing.event.*;
     import java.awt.*;
-    import java.awt.event.*;
-    import java.net.*;
-     
+    import java.awt.event.ActionEvent;
+    import java.awt.event.ActionListener;
+    import java.net.MalformedURLException;
+    import java.net.URL;
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.stream.Collectors;
+    import java.io.IOException;
+
+    import javax.xml.parsers.DocumentBuilder;
+    import javax.xml.parsers.DocumentBuilderFactory;
+    import javax.xml.parsers.ParserConfigurationException;
+    import javax.xml.xpath.XPath;
+    import javax.xml.xpath.XPathConstants;
+    import javax.xml.xpath.XPathExpression;
+    import javax.xml.xpath.XPathExpressionException;
+    import javax.xml.xpath.XPathFactory;
+    
     public class MapDialog extends JFrame {
      
-      // Kï¿½yttï¿½liittymï¿½n komponentit
+      // Käyttöliittymän komponentit
      
       private JLabel imageLabel = new JLabel();
       private JPanel leftPanel = new JPanel();
@@ -20,20 +34,22 @@
       private JButton downB = new JButton("v");
       private JButton zoomInB = new JButton("+");
       private JButton zoomOutB = new JButton("-");
+      
+      // Kuvan sijainti
+        private int x = 0;
+        private int y = 20;
+        private int z = 80;
+        private int o = 20;
      
       public MapDialog() throws Exception {
-        int n = 20;
-        int s = -20;
-        int w = -40;
-        int e = 40;
+
      
-        // Valmistele ikkuna ja lisï¿½ï¿½ siihen komponentit
+        // Valmistele ikkuna ja lisää siihen komponentit
      
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
      
-        // ALLA OLEVAN TESTIRIVIN VOI KORVATA JOLLAKIN MUULLA ERI ALOITUSNï¿½KYMï¿½N
-        // LATAAVALLA RIVILLï¿½
+        // UUSI ALOTUSNÄKYMÄ EHKÄ?
         String urlA = "http://demo.mapserver.org/cgi-bin/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX="+s+","+w+","+n+","+e+"&SRS=EPSG:4326&WIDTH=953&HEIGHT=480&LAYERS=bluemarble,cities&STYLES=&FORMAT=image/png&TRANSPARENT=true";
         imageLabel.setIcon(new ImageIcon(new URL(urlA)));
      
@@ -57,6 +73,7 @@
         // KAIKKIEN XML-DATASTA HAETTUJEN KERROSTEN VALINTALAATIKOT MALLIN MUKAAN
         leftPanel.add(new LayerCheckBox("bluemarble", "Maapallo", true));
         leftPanel.add(new LayerCheckBox("cities", "Kaupungit", false));
+        
      
         leftPanel.add(refreshB);
         leftPanel.add(Box.createVerticalStrut(20));
@@ -85,36 +102,37 @@
           if(e.getSource() == refreshB) {
             //try { updateImage(); } catch(Exception ex) { ex.printStackTrace(); }
           }
-          if(e.getSource() == leftB) {
-            // TODO:
+          else if(e.getSource() == leftB) {
             // VASEMMALLE SIIRTYMINEN KARTALLA
             // MUUTA KOORDINAATTEJA, HAE KARTTAKUVA PALVELIMELTA JA Pï¿½IVITï¿½ KUVA
+            x = x + o;
           }
-          if(e.getSource() == rightB) {
-            // TODO:
+          else if(e.getSource() == rightB) {
             // OIKEALLE SIIRTYMINEN KARTALLA
             // MUUTA KOORDINAATTEJA, HAE KARTTAKUVA PALVELIMELTA JA Pï¿½IVITï¿½ KUVA
+            x = x - o;
           }
-          if(e.getSource() == upB) {
-            // TODO:
+          else if(e.getSource() == upB) {
             // YLï¿½SPï¿½IN SIIRTYMINEN KARTALLA
             // MUUTA KOORDINAATTEJA, HAE KARTTAKUVA PALVELIMELTA JA Pï¿½IVITï¿½ KUVA
+            y = y + o;
           }
-          if(e.getSource() == downB) {
-            // TODO:
+          else if(e.getSource() == downB) {
             // ALASPï¿½IN SIIRTYMINEN KARTALLA
             // MUUTA KOORDINAATTEJA, HAE KARTTAKUVA PALVELIMELTA JA Pï¿½IVITï¿½ KUVA
+            y = y - o;
           }
-          if(e.getSource() == zoomInB) {
-            // TODO:
+          else if(e.getSource() == zoomInB) {
             // ZOOM IN -TOIMINTO
             // MUUTA KOORDINAATTEJA, HAE KARTTAKUVA PALVELIMELTA JA Pï¿½IVITï¿½ KUVA
+            z = new Double(z*0.75).intValue();
           }
-          if(e.getSource() == zoomOutB) {
-            // TODO:
+          else if(e.getSource() == zoomOutB) {
             // ZOOM OUT -TOIMINTO
             // MUUTA KOORDINAATTEJA, HAE KARTTAKUVA PALVELIMELTA JA Pï¿½IVITï¿½ KUVA
+            z = new Double(z*1.25).intValue();
           }
+          updateImage();
         }
       }
      
