@@ -10,6 +10,8 @@
     import java.util.List;
     import java.util.stream.Collectors;
     import java.io.IOException;
+    import java.util.logging.Level;
+    import java.util.logging.Logger;
 
     import javax.xml.parsers.DocumentBuilder;
     import javax.xml.parsers.DocumentBuilderFactory;
@@ -35,12 +37,24 @@
       private JButton zoomInB = new JButton("+");
       private JButton zoomOutB = new JButton("-");
       
-      // Kuvan sijainti
+      private final String ServerinOsoite = "http://demo.mapserver.org/cgi-bin/wms?SERVICE=WMS&VERSION=1.1.1";
+      private final String SRS = "EPSG:4326";
+      
+      
+    // Resoluutio & formaatti 
+        private final int WIDTH = 960;
+        private final int HEIGHT = 480;
+        private final String IMAGE_FORMAT = "image/png";
+        private final boolean TRANSPARENCY = true;
+      
+      
+    // Kuvan sijainti
         private int x = 0;
-        private int y = 20;
+        private int y = 0;
         private int z = 80;
         private int o = 20;
      
+        
       public MapDialog() throws Exception {
 
      
@@ -50,7 +64,7 @@
         getContentPane().setLayout(new BorderLayout());
      
         // UUSI ALOTUSNÄKYMÄ EHKÄ?
-        String urlA = "http://demo.mapserver.org/cgi-bin/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX="+s+","+w+","+n+","+e+"&SRS=EPSG:4326&WIDTH=953&HEIGHT=480&LAYERS=bluemarble,cities&STYLES=&FORMAT=image/png&TRANSPARENT=true";
+        String urlA = "http://demo.mapserver.org/cgi-bin/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX="+x+","+x+","+y+","+y+"&SRS=EPSG:4326&WIDTH=953&HEIGHT=480&LAYERS=bluemarble,cities&STYLES=&FORMAT=image/png&TRANSPARENT=true";
         imageLabel.setIcon(new ImageIcon(new URL(urlA)));
      
         add(imageLabel, BorderLayout.EAST);
@@ -94,6 +108,7 @@
       public static void main(String[] args) throws Exception {
         new MapDialog();
       }
+      
      
       // Kontrollinappien kuuntelija
       // KAIKKIEN NAPPIEN YHTEYDESSï¿½ VOINEE HYï¿½DYNTï¿½ï¿½ updateImage()-METODIA
@@ -132,17 +147,24 @@
             // MUUTA KOORDINAATTEJA, HAE KARTTAKUVA PALVELIMELTA JA Pï¿½IVITï¿½ KUVA
             z = new Double(z*1.25).intValue();
           }
-          updateImage();
+            try {
+                updateImage();
+            } catch (Exception ex) {
+                Logger.getLogger(MapDialog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+          System.out.println("x: " + x + "y: " + y + "z: " + z + "o: " + o);
         }
       }
      
       // Valintalaatikko, joka muistaa karttakerroksen nimen
       private class LayerCheckBox extends JCheckBox {
         private String name = "";
+        
         public LayerCheckBox(String name, String title, boolean selected) {
           super(title, null, selected);
           this.name = name;
         }
+        
         public String getName() { return name; }
       }
      
@@ -151,19 +173,51 @@
       public void updateImage() throws Exception {
         String s = "";
      
-        // Tutkitaan, mitkï¿½ valintalaatikot on valittu, ja
-        // kerï¿½tï¿½ï¿½n s:ï¿½ï¿½n pilkulla erotettu lista valittujen kerrosten
-        // nimistï¿½ (kï¿½ytetï¿½ï¿½n haettaessa uutta kuvaa)
+        // Tutkitaan, mitkä valintalaatikot on valittu, ja
+        // kerätään s:ään pilkulla erotettu lista valittujen kerrosten
+        // nimistä (käytetään haettaessa uutta kuvaa)
         Component[] components = leftPanel.getComponents();
         for(Component com:components) {
             if(com instanceof LayerCheckBox)
               if(((LayerCheckBox)com).isSelected()) s = s + com.getName() + ",";
         }
         if (s.endsWith(",")) s = s.substring(0, s.length() - 1);
-     
-        // TODO:
-        // getMap-KYSELYN URL-OSOITTEEN MUODOSTAMINEN JA KUVAN Pï¿½IVITYS ERILLISESSï¿½ Sï¿½IKEESSï¿½
-        // imageLabel.setIcon(new ImageIcon(url));
+        
+        new MapThread(s).run();
       }
-     
-    } // MapDialog
+          
+
+    // Säie joka hakee uuden karttakuvan palvelimelta
+      private class MapThread extends Thread {
+        private String layers;
+
+        public MapThread(String s) {
+            this.layers = s;
+        }
+
+        // mene.jpg
+        public void run() {
+            int x1 = x - 2 * z,
+                y1 = y - z,
+                x2 = x + 2 * z,
+                y2 = y + z;
+
+            String url = ServerinOsoite
+                    + "&REQUEST=GetMap"
+                    + String.format("&BBOX=%d,%d,%d,%d", x1, y1, x2, y2)
+                    + "&SRS=" + SRS
+                    + "&WIDTH=" + WIDTH
+                    + "&HEIGHT=" + HEIGHT
+                    + "&LAYERS=" + layers
+                    + "&STYLES="
+                    + "&FORMAT=" + IMAGE_FORMAT
+                    + "&TRANSPARENT=" + TRANSPARENCY;
+
+            try {
+                imageLabel.setIcon(new ImageIcon(new URL(url)));
+            } catch (MalformedURLException m) {
+            }
+        }
+    }
+
+} // MapDialog
