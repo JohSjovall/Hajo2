@@ -42,8 +42,8 @@
       
       
     // Resoluutio & formaatti 
-        private final int WIDTH = 960;
-        private final int HEIGHT = 480;
+        private final int Leveys = 960;
+        private final int Korkeus = 480;
         private final String IMAGE_FORMAT = "image/png";
         private final boolean TRANSPARENCY = true;
       
@@ -189,10 +189,10 @@
 
     // Säie joka hakee uuden karttakuvan palvelimelta
       private class MapThread extends Thread {
-        private String layers;
+        private String Tasot;
 
         public MapThread(String s) {
-            this.layers = s;
+            this.Tasot = s;
         }
 
         // mene.jpg
@@ -206,9 +206,9 @@
                     + "&REQUEST=GetMap"
                     + String.format("&BBOX=%d,%d,%d,%d", x1, y1, x2, y2)
                     + "&SRS=" + SRS
-                    + "&WIDTH=" + WIDTH
-                    + "&HEIGHT=" + HEIGHT
-                    + "&LAYERS=" + layers
+                    + "&WIDTH=" + Leveys
+                    + "&HEIGHT=" + Korkeus
+                    + "&LAYERS=" + Tasot
                     + "&STYLES="
                     + "&FORMAT=" + IMAGE_FORMAT
                     + "&TRANSPARENT=" + TRANSPARENCY;
