@@ -1,4 +1,4 @@
-    // Kartankatseluohjelman graafinen käyttöliittymä
+    // Kartankatseluohjelman graafinen kï¿½yttï¿½liittymï¿½
      
     import javax.swing.*;
     import java.awt.*;
@@ -22,7 +22,7 @@
     
     public class MapDialog extends JFrame {
      
-      // Käyttöliittymän komponentit
+      // Kï¿½yttï¿½liittymï¿½n komponentit
      
       private JLabel imageLabel = new JLabel();
       private JPanel leftPanel = new JPanel();
@@ -37,20 +37,20 @@
       
       // Kuvan sijainti
         private int x = 0;
-        private int y = 20;
-        private int z = 80;
-        private int o = 20;
+        private int y = 0;
+        private int z = 200;
+        private int o = 100;
      
       public MapDialog() throws Exception {
 
      
-        // Valmistele ikkuna ja lisää siihen komponentit
+        // Valmistele ikkuna ja lisï¿½ï¿½ siihen komponentit
      
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
      
-        // UUSI ALOTUSNÄKYMÄ EHKÄ?
-        String urlA = "http://demo.mapserver.org/cgi-bin/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX="+s+","+w+","+n+","+e+"&SRS=EPSG:4326&WIDTH=953&HEIGHT=480&LAYERS=bluemarble,cities&STYLES=&FORMAT=image/png&TRANSPARENT=true";
+        // UUSI ALOTUSNï¿½KYMï¿½ EHKï¿½?
+        String urlA = "http://demo.mapserver.org/cgi-bin/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX="+x+","+y+","+z+","+o+"&SRS=EPSG:4326&WIDTH=953&HEIGHT=480&LAYERS=bluemarble,cities&STYLES=&FORMAT=image/png&TRANSPARENT=true";
         imageLabel.setIcon(new ImageIcon(new URL(urlA)));
      
         add(imageLabel, BorderLayout.EAST);
@@ -71,8 +71,7 @@
         // TODO:
         // ALLA OLEVIEN KOLMEN TESTIRIVIN TILALLE SILMUKKA JOKA LISï¿½ï¿½ Kï¿½YTTï¿½LIITTYMï¿½ï¿½N
         // KAIKKIEN XML-DATASTA HAETTUJEN KERROSTEN VALINTALAATIKOT MALLIN MUKAAN
-        leftPanel.add(new LayerCheckBox("bluemarble", "Maapallo", true));
-        leftPanel.add(new LayerCheckBox("cities", "Kaupungit", false));
+        CheckBoxes();
         
      
         leftPanel.add(refreshB);
@@ -93,8 +92,40 @@
      
       public static void main(String[] args) throws Exception {
         new MapDialog();
+
       }
-     
+        private void CheckBoxes() {
+          String url = ServerinOsoite + "&REQUEST=GetCapabilities";
+          try {
+              DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new URL(url).openStream());
+              for (String l : getLayers(doc)) {
+                  LayerCheckBox b = new LayerCheckBox(l, l, false);
+                  checkboxes.add(b);
+                  leftPanel.add(b);
+              }
+          } catch (ParserConfigurationException | IOException | SAXException e) {
+              e.printStackTrace();
+          }
+      }
+      private static List<String> getLayers(Document doc) {
+        List<String> list = new ArrayList<>();
+
+        XPathFactory xF = XPathFactory.newInstance();
+        XPath xP = xF.newXPath();
+        String txt = "/WMT_MS_Capabilities/Capability/Layer/Layer/Name/text()";
+        try { 
+            XPathExpression expr = xP.compile(txt);
+            NodeList nodes = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+            // koitin kÃ¤yttÃ¤Ã¤ forEach mut NodeList ei suostunu :(
+            for (int i=0; i<nodes.getLength(); i++) {
+                list.add(nodes.item(i).getNodeValue());
+            }
+        } catch (XPathExpressionException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+      }
       // Kontrollinappien kuuntelija
       // KAIKKIEN NAPPIEN YHTEYDESSï¿½ VOINEE HYï¿½DYNTï¿½ï¿½ updateImage()-METODIA
       private class ButtonListener implements ActionListener{
@@ -132,10 +163,15 @@
             // MUUTA KOORDINAATTEJA, HAE KARTTAKUVA PALVELIMELTA JA Pï¿½IVITï¿½ KUVA
             z = new Double(z*1.25).intValue();
           }
-          updateImage();
+          //updateImage();
+          System.out.println(x+", "+y+", "+z+", "+o);
         }
       }
-     
+
+      public void updateImage()  {
+        String set = String.join(",", checkboxes.stream().filter(cb -> cb.isSelected()).map(cb -> cb.getName()).collect(Collectors.toList()));
+        new MapThread(set).run();
+      }
       // Valintalaatikko, joka muistaa karttakerroksen nimen
       private class LayerCheckBox extends JCheckBox {
         private String name = "";
