@@ -135,7 +135,7 @@ public class MapDialog extends JFrame {
         }
     } // Checkboxes
 
-    //Hae tasot ...  
+    //XML parsemisesta saatu tiedosto parsetaan Layerin nimiet ArrayListaksi.
     private static List<String> getLayers(Document doc) {
         List<String> list = new ArrayList<>();
 
@@ -185,21 +185,7 @@ public class MapDialog extends JFrame {
             }
             System.out.println("x: " + x + "y: " + y + "z: " + z + "o: " + o);
         }
-    }// ButtonListener
-
-    /*
-        Tutkitaan, mitkä valintalaatikot on valittu, ja
-        kerätään s:ään pilkulla erotettu lista valittujen kerrosten
-        nimistä (käytetään haettaessa uutta kuvaa)
-        Component[] components = leftPanel.getComponents();
-        for(Component com:components) {
-            if(com instanceof LayerCheckBox)
-              if(((LayerCheckBox)com).isSelected()) s = s + com.getName() + ",";
-        }
-        if (s.endsWith(",")) s = s.substring(0, s.length() - 1);
-        new MapThread(s).run();
-      }*/
-    
+    }// ButtonListener    
     //updateImage päivittää kuvan hakemalla säikeen avulla uuden karttakuvan annetuilla parametreillä
     public void updateImage() {
         String set = String.join(",", checkboxes.stream().filter(cb -> cb.isSelected()).map(cb -> cb.getName()).collect(Collectors.toList()));
