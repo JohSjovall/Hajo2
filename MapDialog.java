@@ -119,15 +119,35 @@ public class MapDialog extends JFrame {
             DocumentBuilder db = f.newDocumentBuilder();
             Document d = db.parse(new URL(url).openStream());
             for (String l : getLayers(d)) {
-                if(l.equals("cities")||l.equals("bluemarble")){
+                /*if(l.equals("cities")||l.equals("bluemarble")){
                     LayerCheckBox b = new LayerCheckBox(l, l, true);
                     checkboxes.add(b);
                     leftPanel.add(b);
-                }
+                }*/
+                if(l.equals("bluemarble")){
+                  LayerCheckBox b = new LayerCheckBox(l, "Maapallo", true);
+                  checkboxes.add(b);
+                  leftPanel.add(b);
+              }
+                if(l.equals("cities")){
+                  LayerCheckBox b = new LayerCheckBox(l, "Paakaupungit", true);
+                  checkboxes.add(b);
+                  leftPanel.add(b);
+              }
+                if(l.equals("country_bounds")){
+                  LayerCheckBox b = new LayerCheckBox(l, "Maiden rajat", false);
+                  checkboxes.add(b);
+                  leftPanel.add(b);
+              }
+                if(l.equals("continents")){
+                  LayerCheckBox b = new LayerCheckBox(l, "Maanosat", false);
+                  checkboxes.add(b);
+                  leftPanel.add(b);
+              }
                 else{
-                    LayerCheckBox b = new LayerCheckBox(l, l, false);
+                    /*LayerCheckBox b = new LayerCheckBox(l, l, false);
                     checkboxes.add(b);
-                    leftPanel.add(b);
+                    leftPanel.add(b); */
                 }
             }
         } catch (ParserConfigurationException | IOException | SAXException e) {
